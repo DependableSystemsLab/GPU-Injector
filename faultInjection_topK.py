@@ -109,6 +109,10 @@ class Symbols:
         self.operand = []
         self.isRepetitive = 0
         self.isValid = 0
+
+def determineIteration(pc,log):
+    pass
+
         
 def processLog(logfile):
     global profile
