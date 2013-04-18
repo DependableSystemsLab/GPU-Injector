@@ -26,7 +26,7 @@ logger = None
 CUDA_GDB_PATH = "cuda-gdb"
 BREAKPOINT = "break "
 BREAK_LOCATION = configure.startline
-#BREAK_LOCATION2 = "bucket_query.cu:970"
+BREAK_LOCATION2 = "bucket_query.cu:970"
 PRINT_PC = "print $pc"
 CURRENT_INSTRUCTION = "display/i $pc"
 NEXT_INSTRUCTION = "display/2i $pc"
@@ -102,6 +102,16 @@ def checkFile(path):
     except IOError:
        return -1
     
+def runChecker(cmd,check_str):
+    p = Popen(cmd,shell=True,stdout=PIPE,stderr = PIPE)
+    stdout, stderr = p.communicate()
+    print stdout
+    print stderr
+    if check_str in stdout:
+        return 0;
+    else:
+        return -1;
+    
 class Symbols:
     
     def __init__(self):
@@ -110,8 +120,16 @@ class Symbols:
         self.isRepetitive = 0
         self.isValid = 0
 
-def determineIteration(pc,log):
-    pass
+def determineIteration(ln,item,log):
+    counter = 0
+    lp_counter = 0
+    for line in log:
+        lp_counter = lp_counter +1
+        if lp_counter > ln:
+            break
+        if cmp(line[0], item[0]) == 0 and cmp(line[1], item[1]) == 0 and cmp(line[2],item[2]) == 0 and cmp(line[3], item[3]) ==0 and cmp(line[6], item[6])  == 0  and cmp(line[5], item[5]) == 0:
+            counter = counter +1
+    return counter
 
         
 def processLog(logfile):
@@ -187,7 +205,7 @@ def processLog(logfile):
                         file_name = temp[6]
                         if len(temp) > 7:
                             no_line = temp[7]
-                    if int(count) <= 32 and no_line !=''  and file_name != "cmath" and file_name !="vector_functions.h" and file_name!="texture_fetch_functions.h" and  file_name != "device_functions.h" and file_name != "ci_include.h" and file_name!= "math_functions.h": 
+                    if int(count) <= 32 and no_line !='' and int(count) != 24  and file_name != "cmath" and file_name !="vector_functions.h" and file_name!="texture_fetch_functions.h" and  file_name != "device_functions.h" and file_name != "ci_include.h" and file_name!= "math_functions.h": 
                         
                         dim_b_from = [i for i in block_from[1:-1].split(',')]
                         dim_b_end = [i for i in block_end[1:-1].split(',')]
@@ -214,7 +232,8 @@ def processLog(logfile):
     print profile.keys()
     if configure.multiple_kernel == 1: 
         for item in configure.kernel_number:
-            profile[item] = []
+            if item not in profile.keys():
+                profile[item] = []
         for item in profile.keys():
             if len(profile[item]) != 0:
                 duplicate = list(profile[item])
@@ -319,6 +338,7 @@ def getRegisterSymbols(instruction):
     else:
         symbol.opcode = opcode[0]
     if len(opcode) == 1:
+        print opcode
         symbol.isValid = -1
         return symbol
     if "[" in opcode[len(opcode)-1]:
@@ -398,7 +418,7 @@ def checkActivated(reg,instruction):
             return 0
 
     
-def faultMain(path,trigger,trial,pc,kernel):
+def faultMain(path,trigger,trial,pc,kernel,iteration):
     global CUDA_GDB_PATH, BREAKPOINT,BREAK_LOCATION,CURRENT_INSTRUCTION,SETPI,MODIFY_REGISTER,REGISTER,THREAD,DELETE_BREAKPOINT,KILL,DELETE_BREAKPOINT2,BREAK_LOCATION2, DELETE_BREAKPOINT3
     global CUDA_GDB_EXPECT,BREAKPOINT_EXPECT,EOL_EXPECT,RUN_EXPECT,CONTINUE_EXPECT,CURRENT_INSTRUCTION_EXPECT,THREAD_EXPECT,DELETE_BREAKPOINT_EXPECT,PRINT_PC,ARGUMENT,NEXT_INSTRUCTION,SIGTRAP
     global logger
@@ -473,9 +493,30 @@ def faultMain(path,trigger,trial,pc,kernel):
                 cuda_gdb_p.terminate(force=True)
                 cuda_gdb_p.close()
                 return 
+    # need to see if it is in the loop and jump over iterations
+    logger.info("begin to see how many iterations we need to jump "+str(iteration))
+    for iter in range(0,iteration-1):
+        cuda_gdb_p.sendline(CONTINUE)
+        j = cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+        res = cuda_gdb_p.before
+        logger.info(res)
+        if j == 0:
+            logger.info("Error happened ! Terminated! 5")
+            killProcess(configure.benchmark)
+            cuda_gdb_p.terminate(force=True)
+            cuda_gdb_p.close()
+            return 
+        else :
+            res_continue = cuda_gdb_p.before
+            if "Program exited" in res_continue or "Switching " in res_continue:
+                logger.info("Cannot hit the breakpoint!i 5")
+                killProcess(configure.benchmark)
+                cuda_gdb_p.terminate(force=True)
+                cuda_gdb_p.close()
+                return 
     i = 0
     counter_i= 0
-    rand_counter = random.randint(0,100)
+    rand_counter = random.randint(0,configure.instruction_random)
     while i == 0:
         cuda_gdb_p.sendline(PRINT_PC)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=600)
@@ -513,7 +554,7 @@ def faultMain(path,trigger,trial,pc,kernel):
             i = 1
         counter_i = counter_i +1
         logger.info("counter is "+str(counter_i))
-        if counter_i >= rand_counter+50:
+        if counter_i >= rand_counter+configure.instruction_counter:
             logger.info("Cannot hit pc! Pick next random instrcution!")
             i = 1
     #------------------------------
@@ -538,6 +579,15 @@ def faultMain(path,trigger,trial,pc,kernel):
         return 
     # if the instruction is memory instruction, the fault is considered activated immediatley. 
     symbol = getRegisterSymbols(target[len(target)-1])
+    # dealing with predicate instuctions
+    preDest = ""
+    preDestValue = ""
+    if "@P" in symbol.opcode or "@!P" in symbol.opcode:
+        preDest = symbol.operand[0]
+        cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+preDest)
+        cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+        preDestVList = cuda_gdb_p.before.lstrip().rstrip("\r\n").split("\t")
+        preDestValue = preDestVList[len(preDestVList)-1]
     flag = 0
     mem_insn = ""
     mem_value_before = ""
@@ -573,7 +623,7 @@ def faultMain(path,trigger,trial,pc,kernel):
               cuda_gdb_p.close()
               logger.info("Trail "+str(trial)+" finishes!")
               return
-    if flag == 1:
+    if flag == 1 and symbol.isRepetitive != 1:
         cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+reg+" = "+mem_value_before[len(mem_value_before)-1])
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         logger.info("Memory instruction change reg "+reg+" back to "+mem_value_before[len(mem_value_before)-1])
@@ -585,6 +635,12 @@ def faultMain(path,trigger,trial,pc,kernel):
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         value_before = cuda_gdb_p.before.lstrip().rstrip("\r\n").split("\t")
         logger.info(value_before)
+        if value_before == preDestValue:
+            logger.info("Predicated instruction is not executed!")
+            killProcess(configure.benchmark)
+            cuda_gdb_p.terminate(force=True)
+            cuda_gdb_p.close()
+            return        
         #-----------------
         #inject the fault 
         #-----------------
@@ -611,6 +667,8 @@ def faultMain(path,trigger,trial,pc,kernel):
             logger.info("At trial "+str(trial) +" fault in register "+reg+"is overwritten at instruction "+instruction)
     res = ""
     counter = 0
+    last_inst = ""
+    isPredicated = 0
     while isActivated == 0:
         if CUDA_EXCEPTION in res:
               logger.info(res)
@@ -642,7 +700,32 @@ def faultMain(path,trigger,trial,pc,kernel):
             res = cuda_gdb_p.before
             instructions = res.split(CURRENT_INSTRUCTION_EXPECT)
             instruction = instructions[len(instructions)-1].lstrip().rstrip("\r\n")
-            isActivated = checkActivated(reg,instruction)
+            symbol_check = getRegisterSymbols(instruction)
+            if "@P" in symbol_check.opcode or "@!P" in symbol_check.opcode:
+                preDest = symbol_check.operand[0]
+                cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+preDest)
+                cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+                preDestVList = cuda_gdb_p.before.lstrip().rstrip("\r\n").split("\t")
+                preDestValue = preDestVList[len(preDestVList)-1]
+                isPredicated = 1
+                last_inst = instruction
+            else:
+                if isPredicated == 1:
+                    cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+preDest)
+                    cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+                    preDestVList = cuda_gdb_p.before.lstrip().rstrip("\r\n").split("\t")
+                    preDestValue_new = preDestVList[len(preDestVList)-1]
+                    if preDestValue != preDestValue:
+                        logger.info("Predicate inst is executed! Check")
+                        isActivated = checkActivated(reg,last_inst)
+                        if isActivated == 0:
+                            isActivated = checkActivated(reg,instruction)
+                    else:
+                        logger.info("Predicate inst is not executed! Skip!")
+                        isActivated = checkActivated(reg,instruction)
+                    isPredicated = 0
+                else:         
+                    isActivated = checkActivated(reg,instruction)
             if isActivated == 2:
                 logger.info("At trial "+str(trial) +" fault in register "+reg+" is overwritten at instruction "+instruction)
             if isActivated == 1:
@@ -702,8 +785,9 @@ def faultMain(path,trigger,trial,pc,kernel):
                 return
             else: 
                 #compare the results
-                ret = checkFile("output/beamOutput.txt")
-                if ret == 0:
+                #ret = checkFile("output/beamOutput.txt")
+                ret = runChecker(configure.comparestring,configure.checkstring)
+                if ret > 0:
                         logger.info("At trial "+str(trial)+" fault in register "+reg+" executed correctly")
                         if assert_flag == 1:
                             logger.info("correct_and_asserted")
@@ -739,7 +823,7 @@ def main():
         num_kernels = len(profile.keys())
         random.seed()
         kernel = random.randint(0,num_kernels-1)
-        print kernel
+        #print kernel
         num_items = len(profile[str(profile.keys()[kernel])])
         item = random.randint(0,num_items-1)
         print item
@@ -749,11 +833,12 @@ def main():
                 item = item -1
             else:
                 item = item +1
+        iteration = determineIteration(item,profile[str(profile.keys()[kernel])][item],profile[str(profile.keys()[kernel])])
         breakpoint = generateBreakpoint(profile[str(profile.keys()[kernel])][item],str(profile.keys()[kernel]))
         pc = int(profile[str(profile.keys()[kernel])][item][5],0)
         logger.info("Trial "+str(trial)+" starts!")
-        faultMain(configure.binary_path,breakpoint,trial,pc,str(profile.keys()[kernel]))
-        runDiff("rm "+configure.outputfile)
+        faultMain(configure.binary_path,breakpoint,trial,pc,str(profile.keys()[kernel]),iteration)
+        #runDiff("rm "+configure.outputfile)
         time.sleep(5)
 
 main()
