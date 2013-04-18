@@ -1,7 +1,7 @@
 #configuration for the kernel 
-startline = "jds_kernels.cu:9"
-benchmark = "spmv"
-kernel = "spmv_jds"
+startline = "bucket_qury.cu:9"
+benchmark = "topK_rand"
+kernel = ""
 multiple_kernel = 0
 kernel_number = ['86','87']
 #configuration for the profile
@@ -15,8 +15,8 @@ instruction_random = 50
 
 #configuration for launching the benchmark
 
-parameter = " -i ~/parboil/datasets/spmv/small/input/1138_bus.mtx,/home/bo/parboil/datasets/spmv/small/input/vector.bin -o output"
-binary_path = "/home/bo/parboil/benchmarks/spmv/build/cuda_arch20/spmv"
+parameter = " 12 4096 0.5 1 1 /home/bo/topK_thrust/topK/data/testList_12 /home/bo/topK_thrust/topK/data/testListSorted_12 ALL_K CHECK 3589950516"
+binary_path = "/home/bo/topK_thrust/topK/bin/linux/topK_rand"
 
 #correctness check
 outputfile = "/home/bo/topK_thrust/topK/output/beamOutput.txt"

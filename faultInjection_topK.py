@@ -168,7 +168,7 @@ def processLog(logfile):
             flag = 1
         if flag == 1:
             if "Kernel " not in line:
-                if re.search("\(\d*,\d*,\d*\)",line) and "focus" not in line and "Breakpoint" not in line and "kernel " not in line and "in tex" not in line and "info cuda threads block" not in line and "in matrixMul" not in line:
+                if re.search("\(\d*,\d*,\d*\)",line) and "focus" not in line and "Breakpoint" not in line and "kernel " not in line and "in tex" not in line and "info cuda threads block" not in line and "in matrixMul" not in line and "<<<" not in line:
                     print line
                     thread_from = ""
                     thread_end = ""
@@ -268,32 +268,6 @@ def generateBreakpoint(breaklist,kernel_id):
     tidx = int(breaklist[2][0])+count
     #tidy = int(breaklist[2][1])+count
     #tidz = int(breaklist[2][2])
-    #tid = gridx*gridy*gridz*(bidx+gridx*bidy+gridx*gridy*bidz)+tidx+blockx*tidy+blockx*blocky*tidz
-    #fault_tid = tid+index;
-    #max_tid = gridx*gridy*gridz*(int(breaklist[1][0])+gridx*int(breaklist[1][1])+gridx*gridy*int(breaklist[1][2]))+int(breaklist[3][0])+blockx*int(breaklist[3][1])+blockx*blocky*int(breaklist[3][2])
-    #ctid = tid
-    #print fault_tid
-#    count = 0
-#    while count != index:
-#            tidz = (tidz + 1)%blockz
-#            if tidz == 0:
-#                tidy == (tidy+1)%blocky
-#                if tidy == 0:
-#                    tidx = (tidx+1)%blockx
-#                    if tidx == 0:
-#                        bidz = (bidz+1)%gridz
-#                        if bidz == 0:
-#                            bidy = (bidy+1)%gridy
-#                            if bidy == 0:
-#                                bidx = (bidx+1)%gridx
-#            count = count +1
-#            print "########"
-#            print str(tidz)+" "+str(tidy)+" "+str(tidx)+" "+str(bidz)+" "+str(bidy)+" "+str(bidx)
-#            ctid = gridx*gridy*gridz*(bidx+gridx*bidy+gridx*gridy*bidz)+tidx+blockx*tidy+blockx*blocky*tidz
-#            print ctid
-#            print "########"
-#            if ctid == fault_tid:
-#                break
     breakstr = breaklist[6]+":"+breaklist[7]+" if blockIdx.x == "+str(bidx)+" && blockIdx.y == "+str(bidy)+" && blockIdx.z == "+str(bidz)+" && threadIdx.x == "+str(tidx)+ " && threadIdx.y == "+str(tidy)+" && threadIdx.z == "+str(tidz)
     print breakstr
     return breakstr
@@ -785,8 +759,8 @@ def faultMain(path,trigger,trial,pc,kernel,iteration):
                 return
             else: 
                 #compare the results
-                #ret = checkFile("output/beamOutput.txt")
-                ret = runChecker(configure.comparestring,configure.checkstring)
+                ret = checkFile(configure.outputfile)
+                #ret = runChecker(configure.comparestring,configure.checkstring)
                 if ret > 0:
                         logger.info("At trial "+str(trial)+" fault in register "+reg+" executed correctly")
                         if assert_flag == 1:
