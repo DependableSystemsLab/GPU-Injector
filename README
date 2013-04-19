@@ -1,0 +1,52 @@
+Description
+###########
+This directory contails a set of fault injection tool that allows to inject faults into real GPUs through CUDA-GDB. 
+
+Author
+######
+Bo Fang @UBC
+
+Files
+#####
+1. profiler_benchmark.py
+
+This script profiles the targeting GPU benchmark and generates a profile file that contains the dynamic instrcutions of the benchmark. Please note that due to that a complete set of dynamic instructions of all threads belong to the benchmark is extreamly time-consuming, the script only produces a set of instructions for one block.
+
+2. faultInjection_benchmark.py
+
+This script reads PCs from the profile file and injects faults into a random PC in a randomly selected block and thread. What users need to change for different benchmarks could be 
+
+a. filtering the profile so only avaliable PCs are selected because different benchmarks get threads launched in different ways on hardware.
+
+b. checking the correctness of the benchmark. 
+
+3. configure.py
+
+This file defines configurations for each benchmark. It should be modified based on the GPU kernel that is running. 
+
+4. generateDynamic.py
+
+This script runs the benchmark through CUDA-GDB and records all the kernel information. Then it modify the profile file automatically to enable the fault injection.
+
+5. analysis tools
+
+analysis.py and processCrash.py ( not used for fault injection but for collecting results )
+
+Usage
+#####
+
+The proper order of using the tool is to firstly profile the benchmark by running
+
+"python profiler_benchmark.py"
+
+Then it will generate a profile file named benchmark_kernel_node_profiler.log. Please note that it is necessary to see if the current block/thread has finished and stop the profile by hand. Normally the profiler would watch for the first block block (0,0,0). Next run configure.py using 
+
+"python generateDynamic.py"
+
+to modify the profile file for adding kernel information into it. Last, modify faultInjection_benchmark.py on the two points that described in the above section based on the profile and run fault injection
+
+"python faultInjection_benchmark.py"
+
+By default the fault injection will last for 3000 runs. But usually it gets to 1000 activated runs less than 3000. This is another part that manual stop is needed. 
+
+
