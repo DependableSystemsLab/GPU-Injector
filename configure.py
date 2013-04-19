@@ -1,11 +1,12 @@
 #configuration for the kernel 
-startline = "bucket_qury.cu:9"
+startline = "bucket_query.cu:9"
 benchmark = "topK_rand"
 kernel = ""
 multiple_kernel = 0
 kernel_number = ['86','87']
+node = ""
 #configuration for the profile
-profile_file = benchmark+"_"+kernel+"_"+"profiler.log"
+profile_file = benchmark+"_"+kernel+"_"+node+"_"+"profiler.log"
 #profile_file = "spmvprofiler.log"
 
 #configuration for the injection
@@ -21,4 +22,4 @@ binary_path = "/home/bo/topK_thrust/topK/bin/linux/topK_rand"
 #correctness check
 outputfile = "/home/bo/topK_thrust/topK/output/beamOutput.txt"
 comparestring = "/home/bo/parboil/benchmarks/spmv/tools/compare-output ~/parboil/datasets/spmv/small/output/1138_bus.mtx.out ./output"
-checkstring = "Passed"
+checkstring = "Pass"
