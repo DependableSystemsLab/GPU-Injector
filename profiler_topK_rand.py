@@ -15,7 +15,7 @@ logger = None
 CUDA_GDB_PATH = "cuda-gdb"
 BREAKPOINT = "break "
 #BREAK_LOCATION = "matrixMul_kernel.cu:38"
-BREAK_LOCATION = "bucket_query.cu:75"
+BREAK_LOCATION = configure.startline
 BREAK_LOCATION_2 = "bucket_query.cu:274"
 BREAK_LOCATION_3 = "sort_scan.cu:120"
 BREAK_LOCATION_4 = "bucket_query.cu:116"
@@ -62,8 +62,8 @@ def profiler(path,trigger,trial):
     #---------------
     # set breakpoint
     #---------------
-    #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION)
-    #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+    cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION)
+    cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION_2)
     #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION_3)
@@ -74,8 +74,8 @@ def profiler(path,trigger,trial):
     #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION_5)
     #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
-    cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION_6)
-    cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+    #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION_6)
+    #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #---------------
     # run the program
     #---------------
