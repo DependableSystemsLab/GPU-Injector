@@ -1,25 +1,27 @@
 #configuration for the kernel 
-startline = "bucket_query.cu:9"
-benchmark = "topK_rand"
-kernel = ""
+startline = "aesEncrypt256_kernel.h:61"
+benchmark = "aes"
+kernel = "aesEncrypt256"
 multiple_kernel = 0
 kernel_number = ['86','87']
-node = ""
 #configuration for the profile
-profile_file = benchmark+"_"+kernel+"_"+node+"_"+"profiler.log"
-#profile_file = "spmvprofiler.log"
+model = "telsa2070"
+profile_file = benchmark+"_"+kernel+"_"+model+"_"+"profiler.log"
+#profile_file = "sadprofiler.log.kernel2"
 
 #configuration for the injection
+startingpc = 8502888
+sm =14
 
-instruction_counter = 50 
-instruction_random = 50
+instruction_counter = 300 
+instruction_random = 0
 
 #configuration for launching the benchmark
-
-parameter = " 12 4096 0.5 1 1 /home/bo/topK_thrust/topK/data/testList_12 /home/bo/topK_thrust/topK/data/testListSorted_12 ALL_K CHECK 3589950516"
-binary_path = "/home/bo/topK_thrust/topK/bin/linux/topK_rand"
+parameter = " e 256 ~/NVIDIA_GPU_Computing_SDK/C/src/AES/data/output.bmp ~/NVIDIA_GPU_Computing_SDK/C/src/AES/data/key256.txt"
+#parameter = " -i ~/parboil/datasets/sad/default/input/reference.bin,/home/bo/parboil/datasets/sad/default/input/frame.bin -o output"
+binary_path = "/home/bo/NVIDIA_GPU_Computing_SDK/C/bin/linux/debug/aescuda"
 
 #correctness check
 outputfile = "/home/bo/topK_thrust/topK/output/beamOutput.txt"
-comparestring = "/home/bo/parboil/benchmarks/spmv/tools/compare-output ~/parboil/datasets/spmv/small/output/1138_bus.mtx.out ./output"
-checkstring = "Pass"
+comparestring = "/home/bo/parboil/benchmarks/sad/tools/compare-output /home/bo/parboil/datasets/sad/default/output/out.bin ./output"
+checkstring = "PASSED"
