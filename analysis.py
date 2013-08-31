@@ -20,6 +20,6 @@ def processCrash(filename):
         if "starts" in log:
             buf = []
                
-processCrash("spmv_spmv_jds.log")
-
+processCrash("matrixMul_matrixMulCUDA.log")
+#processCrash("libor_Pathcalc_Portfolio_KernelGPU.log.part2")
             
