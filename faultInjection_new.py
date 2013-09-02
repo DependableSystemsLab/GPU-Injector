@@ -875,7 +875,7 @@ def faultMain(path,trigger,trial,pc,kernel,iteration):
     preDestOri = ""
     if flag == 1:
         isActivated = 1
-        logger.info("At trial "+str(trial) +" fault in register "+reg+"is activated at instruction "+mem_insn)
+        logger.info("At trial "+str(trial) +" fault in register "+reg+"is activated at instruction "+tar_insn)
     else :
         instructions = res.split(CURRENT_INSTRUCTION_EXPECT)
         instruction = instructions[len(instructions)-1].lstrip().rstrip("\r\n")
