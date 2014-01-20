@@ -5,16 +5,16 @@ kernel = "aesEncrypt256"
 multiple_kernel = 0
 kernel_number = ['86','87']
 #configuration for the profile
-model = "telsa2070"
+model = "telsa2070"  # GPU model for multiple GPUs
 profile_file = benchmark+"_"+kernel+"_"+model+"_"+"profiler.log"
 #profile_file = "sadprofiler.log.kernel2"
 
 #configuration for the injection
-startingpc = 8502888
-sm =14
+startingpc = 8502888  # the first pc from the profile
+sm =14  # number of StreamingMultiprocessor
 
-instruction_counter = 300 
-instruction_random = 0
+instruction_counter = 300 # better to keep it like this
+instruction_random = 0  # better to keep it like this
 
 #configuration for launching the benchmark
 parameter = " e 256 ~/NVIDIA_GPU_Computing_SDK/C/src/AES/data/output.bmp ~/NVIDIA_GPU_Computing_SDK/C/src/AES/data/key256.txt"
