@@ -1,5 +1,5 @@
 ==============================================================================
-LLFI Release License
+GPU-Qin Release License
 ==============================================================================
 University of Illinois/NCSA
 Open Source License
