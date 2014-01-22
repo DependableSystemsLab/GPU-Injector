@@ -1,0 +1,8 @@
+Prerequisites:
+
+1. CUDA environment is expected to be installed successuffly. Moreover, cuda-gdb is needed to be in the system path.
+
+2. Python is required.
+
+3. A Python package: pexpect is required. You can install it through easy-install. 
+
