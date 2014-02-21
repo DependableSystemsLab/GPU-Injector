@@ -6,6 +6,17 @@ Author
 ######
 Bo Fang @UBC
 
+NOTE
+####
+GPU-Qin is based on the following paper. Please refer to the paper for any questions.  
+
+If you write a paper using GPU-Qin, please cite the paper below. Thanks.
+
+"GPU-Qin: A Methodlogy for Evaluating the Error Resilience of GPGPU Applications, 
+Bo Fang, Karthik Pattabiraman, Matei Ripeanu and Sudhanva Gurumurthi, 
+Proceedings of the IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS), 2014, 
+Monterrey, CA." 
+
 Files
 #####
 1. profiler_benchmark.py
