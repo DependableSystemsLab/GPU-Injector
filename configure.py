@@ -10,7 +10,7 @@ profile_file = benchmark+"_"+kernel+"_"+model+"_"+"profiler.log"
 #profile_file = "sadprofiler.log.kernel2"
 
 #configuration for the injection
-startingpc = 8502888  # the first pc from the profile
+#startingpc = 8502888  # the first pc from the profile, will be updated by Update.py
 sm =14  # number of StreamingMultiprocessor
 
 instruction_counter = 300 # better to keep it like this
@@ -24,4 +24,4 @@ binary_path = "/home/bo/NVIDIA_GPU_Computing_SDK/C/bin/linux/debug/aescuda"
 #correctness check
 outputfile = "/home/bo/topK_thrust/topK/output/beamOutput.txt"
 comparestring = "/home/bo/parboil/benchmarks/sad/tools/compare-output /home/bo/parboil/datasets/sad/default/output/out.bin ./output"
-checkstring = "PASSED"
+checkstring = "PASSED" #or "PASS" depending on version of cuda-gdb
