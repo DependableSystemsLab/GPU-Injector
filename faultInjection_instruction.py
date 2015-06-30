@@ -589,7 +589,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
 	print "Step is "+str(step)
         logger.info("Step is "+str(step))
 	if step != 0:
-	    for i in range(1,step+1):
+	    for i in range(1,step):
 		new_block_x = int(i*configure.sm*num_active_block%gridx)
 		new_block_y = int(i*configure.sm*num_active_block/gridx)
                 print "new_block_x "+str(new_block_x)
