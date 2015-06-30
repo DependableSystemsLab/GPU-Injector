@@ -12,7 +12,7 @@ logger = None
 #------------------------
 #CUDA-GDB commands
 #------------------------
-CUDA_GDB_PATH = "cuda-gdb"
+CUDA_GDB_PATH = "/usr/local/cuda/bin/cuda-gdb"
 BREAKPOINT = "break "
 #BREAK_LOCATION = "matrixMul_kernel.cu:38"
 BREAK_LOCATION = configure.startline
