@@ -239,7 +239,7 @@ def processLog(logfile):
                             profile[current_kernel].append(lis)
 
     duplicate = []
-    print profile.keys()
+    print "First Location Profile Keys "+ str(profile.keys())
     if configure.multiple_kernel == 1: 
         for item in configure.kernel_number:
             if item not in profile.keys():
@@ -247,11 +247,11 @@ def processLog(logfile):
         for item in profile.keys():
             if len(profile[item]) != 0:
                 duplicate = list(profile[item])
-        print profile.keys()
+        print "Second Location profile Keys"+ str(profile.keys())
         for item in profile.keys():
             if len(profile[item]) == 0:
                 profile[item].extend(duplicate)
-                print len(profile[item])
+                print "Length is"+str(len(profile[item]))
 
 
 def add_hex2(hex1, hex2):
@@ -268,6 +268,7 @@ def generateBreakpoint(breaklist,kernel_id,offset): #offset is in integer
     blockx = int(kernel_dim_map[kernel_id][1][0])
     blocky = int(kernel_dim_map[kernel_id][1][1])
     blockz = int(kernel_dim_map[kernel_id][1][2])
+   
     #if gridx > 128:
     #    gridx = 128
     bidx = random.randint(0,gridx-1)
@@ -279,15 +280,32 @@ def generateBreakpoint(breaklist,kernel_id,offset): #offset is in integer
     tidx = random.randint(0,blockx-1)
     tidy = random.randint(0,blocky-1)
     tidz = random.randint(0,blockz-1)
+    print "gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(bidx)+"blocky = "+str(bidy)+" blockz = "+str(bidz)+" tidx ="+str(tidx)+" tidy ="+str(tidy)+" tidz ="+str(tidz)
+    logger.info("gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(bidx)+"blocky = "+str(bidy)+" blockz = "+str(bidz)+" tidx ="+str(tidx)+" tidy ="+str(tidy)+" tidz ="+str(tidz))
     #tidx = int(breaklist[2][0])+count
     #tidy = int(breaklist[2][1])
     #tidz = int(breaklist[2][2])
 #--------------------------------------------------------------------------------------------------------------------------------------
-    befor_pc_value=breaklist[5] # the pc value
-    pc_to_inject=add_hex2(befor_pc_value,hex(offset)) #hexadecimal equivalent of pc_to_inject
-    breakstr = pc_to_inject+" if blockIdx.x == "+str(bidx)+" && blockIdx.y == "+str(bidy)+" && blockIdx.z == "+str(bidz)+" && threadIdx.x == "+str(tidx)+ " && threadIdx.y == "+str(tidy)+" && threadIdx.z == "+str(tidz)
+    before_pc_value=breaklist[5] # the pc value
+    print "Type is "+str(type(before_pc_value))
+    print "Before_pc_value= "+before_pc_value
+    time.sleep(4)
+    hex_value=hex(int(before_pc_value,16))
+    conv_1=int(hex_value,16)
+    print "One:"+str(conv_1)
+    conv_2=int(offset)
+    print "Two:"+str(conv_2)
+    total= conv_1+conv_2
+    print "Sum with offset "+str(total)
+    logger.info("Sum with offset "+str(total))
+    pc_to_inject=hex(total)
+    print "Hex value is "+str(pc_to_inject)
+    logger.info("Hex value is "+str(pc_to_inject))
+    #pc_to_inject=add_hex2(befor_pc_value,hex(offset)) #hexadecimal equivalent of pc_to_inject
+    breakstr = "*"+str(pc_to_inject)+" if blockIdx.x == "+str(bidx)+" && blockIdx.y == "+str(bidy)+" && blockIdx.z == "+str(bidz)+" && threadIdx.x == "+str(tidx)+ " && threadIdx.y == "+str(tidy)+" && threadIdx.z == "+str(tidz)
 #--------------------------------------------------------------------------------------------------------------------------------------
-    print breakstr
+    print "BREAK STRING inside breakpoint method is "+breakstr
+    logger.info("BREAK STRING inside breakpoint method is "+breakstr)
     return breakstr
             
 def is_number(s):
@@ -464,7 +482,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     print rawstr
     print "target is kernel "+str(kernel)
     cuda_gdb_p.sendline(PRINT_PC)
-    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=600)
+    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=300)
     basepcline = cuda_gdb_p.before
     logger.info("base pc is "+basepcline)
     basepcline = basepcline.lstrip(" ").rstrip("\r\n")
@@ -472,18 +490,25 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     basepc = basepcline_list[len(basepcline_list)-1]
     off_set = int(basepc)-int(configure.startingpc)
     print "offset is "+str(off_set)
+    logger.info("offset is "+str(off_set))
   #-------------------------------------------------------------------------------------------------------------------------------------
     trigger = generateBreakpoint(profile[str(profile.keys()[for_bk_fn_1])][for_bk_fn_2],str(profile.keys()[for_bk_fn_1]),off_set)
+    print "BREAK STRING inside faultmain method is "+trigger
+    logger.info("BREAK STRING inside faultmain method is "+trigger)
   #-------------------------------------------------------------------------------------------------------------------------------------
-    logger.info("target is kernel"+str(kernel))
+    logger.info("target is kernel "+str(kernel))
     gridx = int(kernel_dim_map[kernel][0][0])
     gridy = int(kernel_dim_map[kernel][0][1])
     gridz = int(kernel_dim_map[kernel][0][2]) 
     blockx = int(kernel_dim_map[kernel][1][0])
     blocky = int(kernel_dim_map[kernel][1][1])
     blockz = int(kernel_dim_map[kernel][1][2])
-    num_warp_block = blockx*blocky/WARP_SIZE
-    num_active_block = SM_WARP/num_warp_block
+    num_warp_block = blockx*blocky/WARP_SIZE 
+    num_active_block = SM_WARP/num_warp_block 
+    print "num_warp_block "+str(num_warp_block)+" num_active_block " +str(num_active_block)
+    logger.info("num_warp_block "+str(num_warp_block)+" num_active_block " +str(num_active_block))
+    print "gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(blockx)+" blocky = "+str(blocky)+" blockz = "+str(blockz)
+    logger.info("gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(blockx)+" blocky = "+str(blocky)+" blockz = "+str(blockz)) 
     num_break = 1
     hit = 0
     found = re.findall('= \d*',trigger)
@@ -493,6 +518,9 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     target_thread = "("+found[3].split(" ")[1]+","+found[4].split(" ")[1]+","+found[5].split(" ")[1]+")"
     cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
     cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+    print "After trying to change to target block and thread CUDA output is "+cuda_gdb_p.before
+    logger.info("After trying to change to target block and thread CUDA output is "+cuda_gdb_p.before)
+    #does not go into this while loop at all----------------------------------------------------------------------------------------------
     while "kernel "+kernel not in rawstr:
         ## First we need to jump to that particular kernel
         #cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(num_break))
@@ -514,7 +542,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                     cuda_gdb_p.sendline("cond 1 "+"blockIdx.x == "+str(new_block_x)+" && blockIdx.y == "+str(new_block_y))
                     cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60) 
                     cuda_gdb_p.sendline(CONTINUE)
-                    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 600)
+                    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
                     print "break at "+cuda_gdb_p.before
                     if "Program exited" in cuda_gdb_p.before:
                       logger.info("Cannot hit the breakpoint!")
@@ -529,7 +557,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         cuda_gdb_p.sendline(cond_break)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60) 
         cuda_gdb_p.sendline(CONTINUE)
-        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 600)
+        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
         print "cond "+cuda_gdb_p.before
         #cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(num_break))
         #cuda_gdb_p.expect(ALLBREAKPOINTS_RES,timeout= 60)
@@ -540,10 +568,12 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         cuda_gdb_p.sendline(cond_break2)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         cuda_gdb_p.sendline(CONTINUE)
-        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 600)
+        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
         rawstr = cuda_gdb_p.before
         print "location "+rawstr
     #if int(kernel) == 0:
+    #---------------------------------------------------------------------------------------------
+    #Comes here-----------------------------------------
     if gridx*gridy > configure.sm*num_active_block:
 	found = re.findall('= \d*',trigger)
 	if len(found) != 6:
@@ -552,22 +582,34 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
 	target_block_y = found[1].split(" ")[1]
 	total_index = gridx*int(target_block_y)+int(target_block_x)
 	step = int(total_index/(configure.sm*num_active_block))
-	print step
+        print "target_block_x "+str(target_block_x)
+        print "target_block_y "+str(target_block_y)
+        logger.info("target_block_x "+str(target_block_x))
+        logger.info("target_block_y "+str(target_block_y))
+	print "Step is "+str(step)
+        logger.info("Step is "+str(step))
 	if step != 0:
-	    for i in range(1,step):
+	    for i in range(1,step+1):
 		new_block_x = int(i*configure.sm*num_active_block%gridx)
 		new_block_y = int(i*configure.sm*num_active_block/gridx)
+                print "new_block_x "+str(new_block_x)
+                print "new_block_y "+str(new_block_y)
+                logger.info("new_block_x "+str(new_block_x))
+                logger.info("new_block_y "+str(new_block_y))
 		if new_block_x >= target_block_x and new_block_y >= target_block_y :
 		    logger.info("Don't jump, too close")
 		    break
 		cuda_gdb_p.sendline("cond 1 "+"blockIdx.x == "+str(new_block_x)+" && blockIdx.y == "+str(new_block_y))
 		cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60)
-		print cuda_gdb_p.before 
+		print "This is after trying to get to new block values "+cuda_gdb_p.before 
+                logger.info("This is after trying to get to new block values "+cuda_gdb_p.before)
 		cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
 		cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+                print "This is after trying to get to target block and thread "+cuda_gdb_p.before 
+                logger.info("This is after trying to get to target block and thread "+cuda_gdb_p.before)
 		if SWITCH_FOCUS in cuda_gdb_p.before:
 		    cuda_gdb_p.sendline(CONTINUE)
-		    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 600)
+		    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
 		    print "break at "+cuda_gdb_p.before
 		    if "Program exited" in cuda_gdb_p.before:
 		      logger.info("Cannot hit the breakpoint!")
@@ -581,19 +623,26 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
 		    hit = 1
 		    break 
     if hit == 0:            
-	print "trigger is "+trigger
+	print "when hit == 0 then trigger is "+trigger
+        logger.info("when hit == 0 then trigger is "+trigger)
 	bt = trigger.split("if")[1] 
     #cond_break = "cond 1 blockIdx.x == "+str(gridx-1)+" && "+"blockIdx.y == "+str(gridy-1)+" &&  "+"blockIdx.z == "+str(gridz-1)+" && "+"threadIdx.x == "+str(blockx-1)+" && "+"threadIdx.y == "+str(blocky-1)+" && "+"threadIdx.z == "+str(blockz-1)
 	cond_break = "cond 1 "+bt
-	print cond_break
+	print "when hit ==0 ,Conditional Breakpoint is "+ cond_break
+        logger.info("when hit ==0 ,Conditional Breakpoint is "+ cond_break)
 	cuda_gdb_p.sendline(cond_break)
 	cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60) 
+        print "In hit == 0 , after setting cond_break CUDA output is "+cuda_gdb_p.before
+        logger.info("In hit == 0 , after setting cond_break CUDA output is "+cuda_gdb_p.before)
 	cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
 	cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+        print "Inside hit == 0 ,This is after trying to get to target block and thread "+cuda_gdb_p.before 
+        logger.info("Inside hit == 0 ,This is after trying to get to target block and thread "+cuda_gdb_p.before)
 	if SWITCH_FOCUS in cuda_gdb_p.before:
 	    cuda_gdb_p.sendline(CONTINUE)
-	    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 600)
+	    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
 	    print "break at first line "+cuda_gdb_p.before
+            logger.info("break at first line "+cuda_gdb_p.before)
 	    if "Program exited" in cuda_gdb_p.before:
 		logger.info("Cannot hit the breakpoint!")
 		killProcess(configure.benchmark)
@@ -606,11 +655,12 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     cuda_gdb_p.sendline("cuda kernel "+kernel)
     #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION2)
     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
-    logger.info(cuda_gdb_p.before)
+    print "Getting to that kernel"+cuda_gdb_p.before
+    logger.info("Getting to that kernel"+cuda_gdb_p.before)
     #cuda_gdb_p.sendline(CONTINUE)
     #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #print (cuda_gdb_p.before)
-    if BREAK_LOCATION in trigger: 
+    '''if BREAK_LOCATION in trigger: 
         cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(1))
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         #num_break = num_break + 1
@@ -621,39 +671,43 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     elif BREAK_LOCATION2 in trigger:
         cuda_gdb_p.sendline(DELETE_BREAKPOINT)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
-    else:
+    else:'''
         #cuda_gdb_p.sendline(DELETE_ALLBREAKPOINTS)
         #cuda_gdb_p.expect(ALLBREAKPOINTS_RES,timeout= 60)
         #cuda_gdb_p.sendline(YES)
         #cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=60) 
-        cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(1))
-        cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+    cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(1))
+    cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         #num_break = num_break + 1
-        print trigger
-        cuda_gdb_p.sendline(BREAKPOINT+" "+trigger)
-        cuda_gdb_p.expect(CUDA_GDB_EXPECT)
-        num_break = num_break + 1
-        logger.info(cuda_gdb_p.before)
+    print "After deleting first breakpoint trigger is " + trigger
+    logger.info("After deleting first breakpoint trigger is " + trigger)
+    cuda_gdb_p.sendline(BREAKPOINT+" "+trigger)
+    cuda_gdb_p.expect(CUDA_GDB_EXPECT)
+    num_break = num_break + 1
+    print "Number of breakpoints "+str(num_break)
+    logger.info("Number of breakpoints "+str(num_break))
+    logger.info("CUDA OUTPUT after setting breakpoint at trigger "+cuda_gdb_p.before)
         #cuda_gdb_p.delaybeforesend = 0
-        cuda_gdb_p.sendline(CONTINUE)
-        j = cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=600)
-        if j == 0:
-            logger.info("Error happened ! Terminated! 2")
+    cuda_gdb_p.sendline(CONTINUE)
+    j = cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=300) 
+    if j == 0:
+       logger.info("CUDA OUTPUT after continue at trigger "+cuda_gdb_p.before)                               
+       logger.info("Error happened ! Terminated! 2")
+       killProcess(configure.benchmark)
+       time.sleep(2)
+       cuda_gdb_p.terminate(force=True)
+       cuda_gdb_p.close()
+       return 
+    else :
+        res_continue = cuda_gdb_p.before
+        if "Program exited" in res_continue:
+            logger.info("Cannot hit the breakpoint!")
             killProcess(configure.benchmark)
             time.sleep(2)
             cuda_gdb_p.terminate(force=True)
             cuda_gdb_p.close()
-            return 
-        else :
-            res_continue = cuda_gdb_p.before
-            if "Program exited" in res_continue:
-                logger.info("Cannot hit the breakpoint!")
-                killProcess(configure.benchmark)
-                time.sleep(2)
-                cuda_gdb_p.terminate(force=True)
-                cuda_gdb_p.close()
-                return
-        print res_continue 
+            return
+    print "After setting breakpoint at trigger "+ res_continue 
     # make sure the focus is on the target block and thread
     found = re.findall('= \d*',trigger)
     if len(found) != 6:
@@ -664,6 +718,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
     print "re set the focus "+cuda_gdb_p.before
     # need to see if it is in the loop and jump over iterations
+    print "begin to see how many iterations we need to jump "+str(iteration)
     logger.info("begin to see how many iterations we need to jump "+str(iteration))
     if iteration > 64:
         iteration = 64
@@ -671,9 +726,11 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         cuda_gdb_p.sendline(CONTINUE)
         j = cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
         res = cuda_gdb_p.before
-        logger.info(res)
+        print "In iteration("+str(iter)+")"+res
+        logger.info("In iteration("+str(iter)+")"+res)
         if j == 0:
-            logger.info("Error happened ! Terminated! 5")
+            print "Error happened ! Terminated! 5 due to timeout at iteration "+str(iter)
+            logger.info("Error happened ! Terminated! 5 due to timeout at iteration "+str(iter))
             killProcess(configure.benchmark)
             time.sleep(2)
             cuda_gdb_p.terminate(force=True)
@@ -682,7 +739,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         else :
             res_continue = cuda_gdb_p.before
             if "Program exited" in res_continue or "Switching " in res_continue:
-                logger.info("Cannot hit the breakpoint!i 5")
+                logger.info("Cannot hit the breakpoint! because of "+res_continue)
                 killProcess(configure.benchmark)
                 time.sleep(2)
                 cuda_gdb_p.terminate(force=True)
@@ -690,8 +747,9 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 return 
     cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
     cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+    logger.info("2 re set the focus "+cuda_gdb_p.before)
     print "2 re set the focus "+cuda_gdb_p.before
-    i = 0
+    '''i = 0
     counter_i= 0
     rand_counter = random.randint(0,configure.instruction_random)
     while i == 0:
@@ -745,14 +803,15 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
             killProcess(configure.benchmark)
             time.sleep(2)
             cuda_gdb_p.terminate(force=True)
-            return
+            return'''
     #------------------------------
     # check the current instruction
     #------------------------------
     cuda_gdb_p.sendline(CURRENT_INSTRUCTION)
     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     curr = cuda_gdb_p.before
-    #logger.info(curr)
+    print "when we pass CURRENT_INSTRUCTION we get "+curr
+    logger.info("when we pass CURRENT_INSTRUCTION we get "+curr)
     #------------------------
     # get the target register
     #------------------------
@@ -1075,7 +1134,7 @@ def main():
     logger.addHandler(hdlr)
     logger.setLevel(logging.INFO)
     processLog(configure.profile_file)
-    for trial in range(3000):
+    for trial in range(1000):
         #randomly generate a breakpoint
         num_kernels = len(profile.keys())
         random.seed()
