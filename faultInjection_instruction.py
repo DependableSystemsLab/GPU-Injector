@@ -74,7 +74,7 @@ SIGTRAP = "Program received signal SIGTRAP"
 # BREAKPOINT format
 #--------------------
 # i.e. break file:line if thread = thread && block = block && $pc = 0xXX
-# record format kernelnumber, blockx, blocky, blockz, threadx, thready, threadz, pc 
+# record format kernelnumber, blockx, blocky, blockz, threadx, thready, threadz, pc
 
 def killProcess(name):
     p = Popen(['ps','-A'],stdout=subprocess.PIPE)
@@ -107,7 +107,7 @@ def checkFile(path):
            return -1
     except IOError:
        return -1
-    
+
 def runChecker(cmd,check_str):
     p = Popen(cmd,shell=True,stdout=PIPE,stderr = PIPE)
     stdout, stderr = p.communicate()
@@ -117,9 +117,9 @@ def runChecker(cmd,check_str):
         return 0;
     else:
         return -1;
-    
+
 class Symbols:
-    
+
     def __init__(self):
         self.opcode = ""
         self.operand = []
@@ -137,7 +137,7 @@ def determineIteration(ln,item,log):
             counter = counter +1
     return counter
 
-        
+
 def processLog(logfile):
     global profile
     global kernel_dim_map
@@ -164,13 +164,13 @@ def processLog(logfile):
                 kernel_dim_map[kernel_id] = []
             kernel_dim_map[kernel_id].append(dim_b)
             kernel_dim_map[kernel_id].append(dim_t)
-             
+
         if "Kernel " in line and "<<<" not in line:
             line = line.lstrip().rstrip("\r\n")
             kernel_id = line.split(" ")[1]
             if kernel_id not in profile:
-                profile[kernel_id] = [] 
-                current_kernel = kernel_id              
+                profile[kernel_id] = []
+                current_kernel = kernel_id
             flag = 1
         if flag == 1:
             if "Kernel " not in line:
@@ -210,11 +210,11 @@ def processLog(logfile):
                         file_name = temp[6]
                         if len(temp) > 7:
                             no_line = temp[7]
-                    #if int(count) <= 32 and no_line !=''  and file_name != "cmath" and file_name !="vector_functions.h" and file_name!="texture_fetch_functions.h" and  file_name != "device_functions.h" and file_name != "ci_include.h" and file_name!= "math_functions.h": 
-                    #if block_end == "(0,0,0)" and no_line != "" and int(no_line) > 47 and int(count) == 1: 
-                   # if int(count) == 1 and no_line !='': 
-                    if int(count) <= 32 and no_line !='': 
-                        
+                    #if int(count) <= 32 and no_line !=''  and file_name != "cmath" and file_name !="vector_functions.h" and file_name!="texture_fetch_functions.h" and  file_name != "device_functions.h" and file_name != "ci_include.h" and file_name!= "math_functions.h":
+                    #if block_end == "(0,0,0)" and no_line != "" and int(no_line) > 47 and int(count) == 1:
+                   # if int(count) == 1 and no_line !='':
+                    if int(count) <= 32 and no_line !='':
+
                         dim_b_from = [i for i in block_from[1:-1].split(',')]
                         dim_b_end = [i for i in block_end[1:-1].split(',')]
                         dim_t_from = [i for i in thread_from[1:-1].split(',')]
@@ -234,13 +234,13 @@ def processLog(logfile):
                         message = dim_b_from[0] + dim_b_from[1] + dim_b_from[2] + dim_b_end[0] + dim_b_end[1] + dim_b_end[2] + dim_t_from[0] + dim_t_from[1] + dim_t_from[2] + dim_t_end[0] + dim_t_end[1] + dim_t_end[2] + count + pc + file_name + no_line
                         m = hashlib.md5()
                         m.update(message)
-                        hashtable.add(m.digest()) 
+                        hashtable.add(m.digest())
                         if m.digest() in hashtable:
                             profile[current_kernel].append(lis)
 
     duplicate = []
     print "First Location Profile Keys "+ str(profile.keys())
-    if configure.multiple_kernel == 1: 
+    if configure.multiple_kernel == 1:
         for item in configure.kernel_number:
             if item not in profile.keys():
                 profile[item] = []
@@ -257,7 +257,7 @@ def processLog(logfile):
 def add_hex2(hex1, hex2):
     return (hex(int(hex1, 16) + int(hex2, 16)))
 
-                        
+
 def generateBreakpoint(breaklist,kernel_id,offset): #offset is in integer
     breakpoint = ""
     #get total number of threads in this span
@@ -268,7 +268,7 @@ def generateBreakpoint(breaklist,kernel_id,offset): #offset is in integer
     blockx = int(kernel_dim_map[kernel_id][1][0])
     blocky = int(kernel_dim_map[kernel_id][1][1])
     blockz = int(kernel_dim_map[kernel_id][1][2])
-   
+
     #if gridx > 128:
     #    gridx = 128
     bidx = random.randint(0,gridx-1)
@@ -307,7 +307,7 @@ def generateBreakpoint(breaklist,kernel_id,offset): #offset is in integer
     print "BREAK STRING inside breakpoint method is "+breakstr
     logger.info("BREAK STRING inside breakpoint method is "+breakstr)
     return breakstr
-            
+
 def is_number(s):
     try:
         float(s)
@@ -334,13 +334,13 @@ def getRegisterSymbols(instruction):
     instruction = instruction.lstrip()
     instruction = instruction.rstrip("\r\n")
     logger.info("get symbol from "+instruction)
-    
+
     #in case instructions like @P0 BRK
     if "," not in instruction:
         instruction = instruction+","
     ops = instruction.split(",")
     opcode = ops[0].split(" ")
-    if instruction.startswith("@P") == True or instruction.startswith("@!P") == True : 
+    if instruction.startswith("@P") == True or instruction.startswith("@!P") == True :
         if len(opcode) > 1:
           symbol.opcode = opcode[0]+opcode[1]
         else:
@@ -372,7 +372,7 @@ def getRegisterSymbols(instruction):
                     for temps2 in temps1:
                         if "]" in temps2:
                             sub = temps2.split("]")
-                            for sub1 in sub:  
+                            for sub1 in sub:
                                 if "+" in sub1:
                                     suboperand = sub1.split("+")
                                     symbol.operand.append(suboperand[0])
@@ -393,9 +393,9 @@ def getRegisterSymbols(instruction):
     for j in range(0,len(symbol.operand)):
         temp = symbol.operand[j]
         if ".CC" in temp:
-            symbol.operand[j] = temp.split(".")[0] 
+            symbol.operand[j] = temp.split(".")[0]
     return symbol
-        
+
 
 def getTargetRegister(instruction):
     symbol = getRegisterSymbols(instruction)
@@ -403,19 +403,19 @@ def getTargetRegister(instruction):
         return "Invalid"
     if "LD" in symbol.opcode or "ST" in symbol.opcode:
         # For LD/ST instructions, we would choose to inject faults into either address calculation or dest register
-        tic = random.randint(0,1)       
-        return symbol.operand[tic]   
+        tic = random.randint(0,1)
+        return symbol.operand[tic]
     elif "SETP" in symbol.opcode:
         if  len(symbol.operand) > 1:
             return symbol.operand[1]
         else:
-            return "invalid"                     
+            return "invalid"
     else:
         if "." in symbol.operand[0]:
             return symbol.operand[0].split(".")[0]
         else:
             return symbol.operand[0]
-        
+
 
 def checkActivated(reg,instruction):
     symbol = getRegisterSymbols(instruction)
@@ -431,7 +431,7 @@ def checkActivated(reg,instruction):
         res = 0
         if symbol.isRepetitive == 1:
             if reg == symbol.operand[0] or reg+".CC" == symbol.operand[0]:
-                return 0         
+                return 0
         for operand in symbol.operand:
             if operand == symbol.operand[0]:
                 if operand == reg or operand == reg+".CC":
@@ -446,11 +446,11 @@ def checkActivated(reg,instruction):
         else:
             return 0
 
-    
+
 def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two parameters are for generateBreakpoint
     global CUDA_GDB_PATH, BREAKPOINT,BREAK_LOCATION,CURRENT_INSTRUCTION,SETPI,MODIFY_REGISTER,REGISTER,THREAD,DELETE_BREAKPOINT,KILL,DELETE_BREAKPOINT2,BREAK_LOCATION2, DELETE_BREAKPOINT3
     global CUDA_GDB_EXPECT,BREAKPOINT_EXPECT,EOL_EXPECT,RUN_EXPECT,CONTINUE_EXPECT,CURRENT_INSTRUCTION_EXPECT,THREAD_EXPECT,DELETE_BREAKPOINT_EXPECT,PRINT_PC,ARGUMENT,NEXT_INSTRUCTION,SIGTRAP
-    global logger, WARP_SIZE,SM_WARP 
+    global logger, WARP_SIZE,SM_WARP
     assert_flag = 0
     cuda_gdb_p = pexpect.spawn(CUDA_GDB_PATH+" "+path)
     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
@@ -499,16 +499,16 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     logger.info("target is kernel "+str(kernel))
     gridx = int(kernel_dim_map[kernel][0][0])
     gridy = int(kernel_dim_map[kernel][0][1])
-    gridz = int(kernel_dim_map[kernel][0][2]) 
+    gridz = int(kernel_dim_map[kernel][0][2])
     blockx = int(kernel_dim_map[kernel][1][0])
     blocky = int(kernel_dim_map[kernel][1][1])
     blockz = int(kernel_dim_map[kernel][1][2])
-    num_warp_block = blockx*blocky/WARP_SIZE 
-    num_active_block = SM_WARP/num_warp_block 
+    num_warp_block = blockx*blocky/WARP_SIZE
+    num_active_block = SM_WARP/num_warp_block
     print "num_warp_block "+str(num_warp_block)+" num_active_block " +str(num_active_block)
     logger.info("num_warp_block "+str(num_warp_block)+" num_active_block " +str(num_active_block))
     print "gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(blockx)+" blocky = "+str(blocky)+" blockz = "+str(blockz)
-    logger.info("gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(blockx)+" blocky = "+str(blocky)+" blockz = "+str(blockz)) 
+    logger.info("gridx = "+str(gridx)+" gridy = "+str(gridy)+" gridz = "+str(gridz)+" blockx = "+str(blockx)+" blocky = "+str(blocky)+" blockz = "+str(blockz))
     num_break = 1
     hit = 0
     found = re.findall('= \d*',trigger)
@@ -516,22 +516,24 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         logger.info("set focus split error")
     target_block = "("+found[0].split(" ")[1]+","+found[1].split(" ")[1]+","+found[2].split(" ")[1]+")"
     target_thread = "("+found[3].split(" ")[1]+","+found[4].split(" ")[1]+","+found[5].split(" ")[1]+")"
-    cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
+    cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread)
     cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
     print "After trying to change to target block and thread CUDA output is "+cuda_gdb_p.before
     logger.info("After trying to change to target block and thread CUDA output is "+cuda_gdb_p.before)
     #does not go into this while loop at all----------------------------------------------------------------------------------------------
-    while "kernel "+kernel not in rawstr:
+    #while "kernel "+kernel not in rawstr:
+    while (1):
+        print "\n Inside the while loop\n"
         ## First we need to jump to that particular kernel
         #cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(num_break))
-        #cuda_gdb_p.expect(ALLBREAKPOINTS_RES,timeout= 60)
+        #cuda_gdb_p.expect([CUDA_GDB_EXPECT,ALLBREAKPOINTS_RES],timeout= 60)
         #cuda_gdb_p.sendline()
         #num_break = num_break+1
         #cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=60)
-        #print "Here is delete "+cuda_gdb_p.before 
+        #print "Here is delete "+cuda_gdb_p.before
         #cond_break = BREAKPOINT+" "+BREAK_LOCATION+" "+"if blockIdx.x == "+str(gridx-1)+" && "+"blockIdx.y == "+str(gridy-1)+" &&  "+"blockIdx.z == "+str(gridz-1)+" && "+"threadIdx.x == "+str(blockx-1)+" && "+"threadIdx.y == "+str(blocky-1)+" && "+"threadIdx.z == "+str(blockz-1)
         if gridx*gridy > configure.sm*num_active_block:
-            step = int(gridx*gridy/(configure.sm*num_active_block)) 
+            step = int(gridx*gridy/(configure.sm*num_active_block))
             if step != 0:
                 for i in range(1,step):
                     new_block_x = int(i*configure.sm*num_active_block%gridx)
@@ -540,7 +542,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                         logger.info("Don't jump, too close")
                         break
                     cuda_gdb_p.sendline("cond 1 "+"blockIdx.x == "+str(new_block_x)+" && blockIdx.y == "+str(new_block_y))
-                    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60) 
+                    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60)
                     cuda_gdb_p.sendline(CONTINUE)
                     cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
                     print "break at "+cuda_gdb_p.before
@@ -551,106 +553,111 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                       cuda_gdb_p.terminate(force=True)
                       cuda_gdb_p.close()
                       return
-                 
+
         cond_break = "cond 1 blockIdx.x == "+str(gridx-1)+" && "+"blockIdx.y == "+str(gridy-1)+" &&  "+"blockIdx.z == "+str(gridz-1)+" && "+"threadIdx.x == "+str(blockx-1)+" && "+"threadIdx.y == "+str(blocky-1)+" && "+"threadIdx.z == "+str(blockz-1)
         print cond_break
         cuda_gdb_p.sendline(cond_break)
-        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60) 
+        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60)
         cuda_gdb_p.sendline(CONTINUE)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
         print "cond "+cuda_gdb_p.before
+        string = cuda_gdb_p.before
+        if "kernel "+configure.kernel_number[0] in string:
+            break
         #cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(num_break))
         #cuda_gdb_p.expect(ALLBREAKPOINTS_RES,timeout= 60)
         #cuda_gdb_p.sendline(YES)
         #num_break = num_break + 1
         #cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=60)
-        cond_break2 = "cond 1 blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0 && threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0" 
+        cond_break2 = "cond 1 blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0 && threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0"
         cuda_gdb_p.sendline(cond_break2)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         cuda_gdb_p.sendline(CONTINUE)
         cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
         rawstr = cuda_gdb_p.before
         print "location "+rawstr
+        if "kernel "+configure.kernel_number[0] in rawstr:
+            break
     #if int(kernel) == 0:
     #---------------------------------------------------------------------------------------------
     #Comes here-----------------------------------------
     if gridx*gridy > configure.sm*num_active_block:
-	found = re.findall('= \d*',trigger)
-	if len(found) != 6:
-	    logger.info("set focus split error")
-	target_block_x = found[0].split(" ")[1]
-	target_block_y = found[1].split(" ")[1]
-	total_index = gridx*int(target_block_y)+int(target_block_x)
-	step = int(total_index/(configure.sm*num_active_block))
+        found = re.findall('= \d*',trigger)
+        if len(found) != 6:
+            logger.info("set focus split error")
+        target_block_x = found[0].split(" ")[1]
+        target_block_y = found[1].split(" ")[1]
+        total_index = gridx*int(target_block_y)+int(target_block_x)
+        step = int(total_index/(configure.sm*num_active_block))
         print "target_block_x "+str(target_block_x)
         print "target_block_y "+str(target_block_y)
         logger.info("target_block_x "+str(target_block_x))
         logger.info("target_block_y "+str(target_block_y))
-	print "Step is "+str(step)
+        print "Step is "+str(step)
         logger.info("Step is "+str(step))
-	if step != 0:
-	    for i in range(1,step):
-		new_block_x = int(i*configure.sm*num_active_block%gridx)
-		new_block_y = int(i*configure.sm*num_active_block/gridx)
+        if step != 0:
+            for i in range(1,step+1):
+                new_block_x = int(i*configure.sm*num_active_block%gridx)
+                new_block_y = int(i*configure.sm*num_active_block/gridx)
                 print "new_block_x "+str(new_block_x)
                 print "new_block_y "+str(new_block_y)
                 logger.info("new_block_x "+str(new_block_x))
                 logger.info("new_block_y "+str(new_block_y))
-		if new_block_x >= target_block_x and new_block_y >= target_block_y :
-		    logger.info("Don't jump, too close")
-		    break
-		cuda_gdb_p.sendline("cond 1 "+"blockIdx.x == "+str(new_block_x)+" && blockIdx.y == "+str(new_block_y))
-		cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60)
-		print "This is after trying to get to new block values "+cuda_gdb_p.before 
+                if new_block_x >= target_block_x and new_block_y >= target_block_y :
+                    logger.info("Don't jump, too close")
+                    break
+                cuda_gdb_p.sendline("cond 1 "+"blockIdx.x == "+str(new_block_x)+" && blockIdx.y == "+str(new_block_y))
+                cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60)
+                print "This is after trying to get to new block values "+cuda_gdb_p.before
                 logger.info("This is after trying to get to new block values "+cuda_gdb_p.before)
-		cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
-		cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
-                print "This is after trying to get to target block and thread "+cuda_gdb_p.before 
+                cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread)
+                cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+                print "This is after trying to get to target block and thread "+cuda_gdb_p.before
                 logger.info("This is after trying to get to target block and thread "+cuda_gdb_p.before)
-		if SWITCH_FOCUS in cuda_gdb_p.before:
-		    cuda_gdb_p.sendline(CONTINUE)
-		    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
-		    print "break at "+cuda_gdb_p.before
-		    if "Program exited" in cuda_gdb_p.before:
-		      logger.info("Cannot hit the breakpoint!")
-		      killProcess(configure.benchmark)
-		      time.sleep(2)
-		      cuda_gdb_p.terminate(force=True)
-		      cuda_gdb_p.close()
-		      return
-		    time.sleep(1)
-		else:
-		    hit = 1
-		    break 
-    if hit == 0:            
-	print "when hit == 0 then trigger is "+trigger
+                if SWITCH_FOCUS in cuda_gdb_p.before:
+                    cuda_gdb_p.sendline(CONTINUE)
+                    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
+                    print "break at "+cuda_gdb_p.before
+                    if "Program exited" in cuda_gdb_p.before:
+                      logger.info("Cannot hit the breakpoint!")
+                      killProcess(configure.benchmark)
+                      time.sleep(2)
+                      cuda_gdb_p.terminate(force=True)
+                      cuda_gdb_p.close()
+                      return
+                    time.sleep(1)
+                else:
+                    hit = 1
+                    break
+    if hit == 0:
+        print "when hit == 0 then trigger is "+trigger
         logger.info("when hit == 0 then trigger is "+trigger)
-	bt = trigger.split("if")[1] 
+        bt = trigger.split("if")[1]
     #cond_break = "cond 1 blockIdx.x == "+str(gridx-1)+" && "+"blockIdx.y == "+str(gridy-1)+" &&  "+"blockIdx.z == "+str(gridz-1)+" && "+"threadIdx.x == "+str(blockx-1)+" && "+"threadIdx.y == "+str(blocky-1)+" && "+"threadIdx.z == "+str(blockz-1)
-	cond_break = "cond 1 "+bt
-	print "when hit ==0 ,Conditional Breakpoint is "+ cond_break
+        cond_break = "cond 1 "+bt
+        print "when hit ==0 ,Conditional Breakpoint is "+ cond_break
         logger.info("when hit ==0 ,Conditional Breakpoint is "+ cond_break)
-	cuda_gdb_p.sendline(cond_break)
-	cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60) 
+        cuda_gdb_p.sendline(cond_break)
+        cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 60)
         print "In hit == 0 , after setting cond_break CUDA output is "+cuda_gdb_p.before
         logger.info("In hit == 0 , after setting cond_break CUDA output is "+cuda_gdb_p.before)
-	cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
-	cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
-        print "Inside hit == 0 ,This is after trying to get to target block and thread "+cuda_gdb_p.before 
+        cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread)
+        cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
+        print "Inside hit == 0 ,This is after trying to get to target block and thread "+cuda_gdb_p.before
         logger.info("Inside hit == 0 ,This is after trying to get to target block and thread "+cuda_gdb_p.before)
-	if SWITCH_FOCUS in cuda_gdb_p.before:
-	    cuda_gdb_p.sendline(CONTINUE)
-	    cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
-	    print "break at first line "+cuda_gdb_p.before
+        if SWITCH_FOCUS in cuda_gdb_p.before:
+            cuda_gdb_p.sendline(CONTINUE)
+            cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout= 300)
+            print "break at first line "+cuda_gdb_p.before
             logger.info("break at first line "+cuda_gdb_p.before)
-	    if "Program exited" in cuda_gdb_p.before:
-		logger.info("Cannot hit the breakpoint!")
-		killProcess(configure.benchmark)
-		time.sleep(2)
-		cuda_gdb_p.terminate(force=True)
-		cuda_gdb_p.close()
-		return
- #if the breakpoint is the same as initial breakpoint, do not delete 
+            if "Program exited" in cuda_gdb_p.before:
+                logger.info("Cannot hit the breakpoint!")
+                killProcess(configure.benchmark)
+                time.sleep(2)
+                cuda_gdb_p.terminate(force=True)
+                cuda_gdb_p.close()
+                return
+ #if the breakpoint is the same as initial breakpoint, do not delete
     time.sleep(2)
     cuda_gdb_p.sendline("cuda kernel "+kernel)
     #cuda_gdb_p.sendline(BREAKPOINT+" "+BREAK_LOCATION2)
@@ -660,7 +667,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     #cuda_gdb_p.sendline(CONTINUE)
     #cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #print (cuda_gdb_p.before)
-    '''if BREAK_LOCATION in trigger: 
+    '''if BREAK_LOCATION in trigger:
         cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(1))
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         #num_break = num_break + 1
@@ -675,7 +682,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         #cuda_gdb_p.sendline(DELETE_ALLBREAKPOINTS)
         #cuda_gdb_p.expect(ALLBREAKPOINTS_RES,timeout= 60)
         #cuda_gdb_p.sendline(YES)
-        #cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=60) 
+        #cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=60)
     cuda_gdb_p.sendline(DELETE_BREAKPOINT+" "+str(1))
     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         #num_break = num_break + 1
@@ -689,15 +696,15 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     logger.info("CUDA OUTPUT after setting breakpoint at trigger "+cuda_gdb_p.before)
         #cuda_gdb_p.delaybeforesend = 0
     cuda_gdb_p.sendline(CONTINUE)
-    j = cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=300) 
+    j = cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=300)
     if j == 0:
-       logger.info("CUDA OUTPUT after continue at trigger "+cuda_gdb_p.before)                               
+       logger.info("CUDA OUTPUT after continue at trigger "+cuda_gdb_p.before)
        logger.info("Error happened ! Terminated! 2")
        killProcess(configure.benchmark)
        time.sleep(2)
        cuda_gdb_p.terminate(force=True)
        cuda_gdb_p.close()
-       return 
+       return
     else :
         res_continue = cuda_gdb_p.before
         if "Program exited" in res_continue:
@@ -707,14 +714,14 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
             cuda_gdb_p.terminate(force=True)
             cuda_gdb_p.close()
             return
-    print "After setting breakpoint at trigger "+ res_continue 
+    print "After setting breakpoint at trigger "+ res_continue
     # make sure the focus is on the target block and thread
     found = re.findall('= \d*',trigger)
     if len(found) != 6:
         logger.info("set focus split error")
     target_block = "("+found[0].split(" ")[1]+","+found[1].split(" ")[1]+","+found[2].split(" ")[1]+")"
     target_thread = "("+found[3].split(" ")[1]+","+found[4].split(" ")[1]+","+found[5].split(" ")[1]+")"
-    cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
+    cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread)
     cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
     print "re set the focus "+cuda_gdb_p.before
     # need to see if it is in the loop and jump over iterations
@@ -735,7 +742,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
             time.sleep(2)
             cuda_gdb_p.terminate(force=True)
             #cuda_gdb_p.close()
-            return 
+            return
         else :
             res_continue = cuda_gdb_p.before
             if "Program exited" in res_continue or "Switching " in res_continue:
@@ -744,8 +751,8 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 time.sleep(2)
                 cuda_gdb_p.terminate(force=True)
                 #cuda_gdb_p.close()
-                return 
-    cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread) 
+                return
+    cuda_gdb_p.sendline("cuda block "+target_block+" thread "+target_thread)
     cuda_gdb_p.expect([pexpect.TIMEOUT,CUDA_GDB_EXPECT],timeout=60)
     logger.info("2 re set the focus "+cuda_gdb_p.before)
     print "2 re set the focus "+cuda_gdb_p.before
@@ -768,7 +775,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 time.sleep(2)
                 cuda_gdb_p.terminate(force=True)
                 #cuda_gdb_p.close()
-                return 
+                return
         #cuda_gdb_p.sendline(CURRENT_INSTRUCTION)
         #cuda_gdb_p.expect(CUDA_GDB_EXPECT,timeout=600)
         #dispcs = cuda_gdb_p.before
@@ -784,7 +791,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
             time.sleep(2)
             cuda_gdb_p.terminate(force=True)
             #cuda_gdb_p.close()
-            return 
+            return
        #res_pc = cuda_gdb_p.before
        #logger.info(res_pc)
        #if "Termination" in res_pc or "focus" in res_pc or "Focus" in res_pc or "Executing" in res_pc:
@@ -825,7 +832,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         time.sleep(2)
         cuda_gdb_p.terminate(force=True)
         #cuda_gdb_p.close()
-        return 
+        return
     symbol = getRegisterSymbols(target[len(target)-1])
     # dealing with predicate instuctions
     preDest = ""
@@ -852,7 +859,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
             mem_value_before = cuda_gdb_p.before.lstrip().rstrip("\r\n").split(" ")
             logger.info(mem_value_before)
             #-----------------
-            #inject the fault 
+            #inject the fault
             #-----------------
             fault = generateFaults(mem_value_before[len(mem_value_before)-1])
             if fault == "Non-numeric":
@@ -869,13 +876,13 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     if "SETP" in symbol.opcode:
         sourceReg = symbol.operand[1]
         cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+sourceReg)
-        cuda_gdb_p.expect(CUDA_GDB_EXPECT) 
+        cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         cmpVList = cuda_gdb_p.before.lstrip().rstrip("\r\n").split(" ")
         cmpValue = cmpVList[len(cmpVList)-1]
         fault_cmp = generateFaults(cmpValue)
         cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+sourceReg+" = "+str(fault_cmp))
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
-        flag = 1 
+        flag = 1
     #need to obtain next instruction to make the last one get executed
     cuda_gdb_p.sendline(STEPI)
     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
@@ -891,7 +898,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
               logger.info("Trial "+str(trial)+" finishes!")
               return
     if flag == 1: #and symbol.isRepetitive != 1:
-        # restore the source register for SETP 
+        # restore the source register for SETP
         if "SETP" in symbol.opcode:
             cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+sourceReg+" = "+cmpValue)
             cuda_gdb_p.expect(CUDA_GDB_EXPECT)
@@ -901,7 +908,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+reg+" = "+mem_value_before[len(mem_value_before)-1])
                 cuda_gdb_p.expect(CUDA_GDB_EXPECT)
                 logger.info("Memory instruction change reg "+reg+" back to "+mem_value_before[len(mem_value_before)-1])
-    else:    
+    else:
         #instructions = res.split(CURRENT_INSTRUCTION_EXPECT)
         #instruction = instructions[len(instructions)-1].lstrip().rstrip("\r\n")
         #get the value of the register
@@ -909,7 +916,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         cuda_gdb_p.expect(CUDA_GDB_EXPECT)
         value_before_list = cuda_gdb_p.before.lstrip().rstrip("\r\n").split(" ")
         value_before = value_before_list[len(value_before_list)-1]
-         
+
         if "@P" in symbol.opcode or "@!P" in symbol.opcode:
             logger.info("Predicate register new: "+value_before+" before: "+preDestValue)
             if value_before == preDestValue or preDestValue == "":
@@ -918,9 +925,9 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 time.sleep(2)
                 cuda_gdb_p.terminate(force=True)
                 #cuda_gdb_p.close()
-                return        
+                return
         #-----------------
-        #inject the fault 
+        #inject the fault
         #-----------------
         fault = generateFaults(value_before[len(value_before)-1])
         if fault == "Non-numeric":
@@ -934,7 +941,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
     #-------------------------------
     #check if the fault is activated
     #-------------------------------
-    # if the instruction is memory instruction, the fault is considered activated immediatley. 
+    # if the instruction is memory instruction, the fault is considered activated immediatley.
     isActivated = 0 # 0: not activated 1: activated 2: overwritten
     preDestValueOri = ""
     isPredicated = 0
@@ -998,7 +1005,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 time.sleep(2)
                 cuda_gdb_p.terminate(force=True)
                 cuda_gdb_p.close()
-                return 
+                return
             res = cuda_gdb_p.before
             instructions = res.split(CURRENT_INSTRUCTION_EXPECT)
             instruction = instructions[len(instructions)-1].lstrip().rstrip("\r\n")
@@ -1013,20 +1020,20 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 logger.info(" old predicate value is "+str(preDestValue))
                 isPredicated_loop = isPredicated_loop+1
                 last_inst_loop = instruction
-      
+
             if isPredicated == 1:
                     cuda_gdb_p.sendline(MODIFY_REGISTER+"$"+preDestOri)
                     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
                     preDestVList = cuda_gdb_p.before.lstrip().rstrip("\r\n").split(" ")
                     preDestValue_new = preDestVList[len(preDestVList)-1]
                     logger.info(" new predicate value is "+str(preDestValue_new)+" old is "+str(preDestValueOri))
-                    
+
                     if preDestValueOri == "":
                         logger.info("Something wrong with the predicate instructions!")
                         killProcess(configure.benchmark)
                         cuda_gdb_p.terminate(force=True)
                         cuda_gdb_p.close()
-                        return 
+                        return
                     if preDestValue_new != preDestValueOri:
                         logger.info("Predicate inst is executed! Check")
                         isActivated = checkActivated(reg,last_inst)
@@ -1040,7 +1047,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                    last_inst = last_inst_loop
                    isPredicated = 1
                    isPredicated_loop = 0
-            else:         
+            else:
                 isActivated = checkActivated(reg,instruction)
             if isActivated == 2:
                 logger.info("At trial "+str(trial) +" fault in register "+reg+" is overwritten at instruction "+instruction)
@@ -1074,7 +1081,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
             log = buf.readlines()
             for item in log:
                 if "Caught" in item:
-                    assert_flag = 1 
+                    assert_flag = 1
             #logger.info(logs)
             if CUDA_EXCEPTION in logs:
                 logger.info(logs)
@@ -1098,10 +1105,10 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                 cuda_gdb_p.terminate(force=True)
                 cuda_gdb_p.close()
                 return
-            else: 
+            else:
                 #compare the results
                 pass_string=" diff "+configure.trialfile+" "+configure.goldenfile
-		ret = runDiff(pass_string)
+                ret = runDiff(pass_string)
                 if ret != 0:
                     logger.info("At trial "+str(trial)+" fault in register "+reg+" executed incorrectly")
                     if assert_flag == 1:
@@ -1110,7 +1117,7 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
                     logger.info("At trial "+str(trial)+" fault in register "+reg+" executed correctly")
                     if assert_flag == 1:
                         logger.info("correct_and_asserted")
-                
+
     except pexpect.TIMEOUT:
         logger.info("At trial "+str(trial)+" fault in register "+reg+" is hang ")
         if assert_flag == 1:
@@ -1119,11 +1126,11 @@ def faultMain(path,trial,pc,kernel,iteration,for_bk_fn_1,for_bk_fn_2): #last two
         time.sleep(2)
         cuda_gdb_p.terminate(force=True)
         cuda_gdb_p.close()
-        return 
+        return
     logger.info("Trial "+str(trial)+" finishes!")
     logger.info("\n")
-        
-        
+
+
 
 def main():
     global logger
@@ -1163,4 +1170,3 @@ def main():
         time.sleep(5)
 
 main()
-    
