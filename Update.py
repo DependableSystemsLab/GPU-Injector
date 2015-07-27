@@ -65,5 +65,5 @@ def main():
         #writing to config file
 	with open("configure.py", "a") as my_file:
              my_file.write("startingpc = "+start_pc_value+"\n")
-        faultInjection.fault_main()
+        faultInjection.fault_main() # or if fault_instruction then change accordingly 
         
