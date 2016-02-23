@@ -117,7 +117,7 @@ def profiler(path,trigger,trial):
     cuda_gdb_p.sendline(SWITCH)
     cuda_gdb_p.expect(CUDA_GDB_EXPECT)
     #while EXIT not in target or EXIT not in temp or "is not being run" in target or "is not being run" in temp: 
-    while "No CUDA threads" not in target: 
+    while "No CUDA" not in target and "No CUDA" not in temp: 
         j = -1
         flag_step = 0
         flag_info = 0
